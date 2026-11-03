@@ -15,6 +15,7 @@ jobs:
           toolchain: stable
           targets: x86_64-pc-windows-msvc
       - name: Build unsigned personal installer
+        shell: bash
         run: vp exec node scripts/build-desktop-artifact.ts --platform win --target nsis --arch x64 --build-version 0.1.6-personal.1 --output-dir dist --verbose
       - name: Hash installer
         shell: pwsh
