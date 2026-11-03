@@ -1166,7 +1166,9 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
         event.target.closest('.xterm,[role="dialog"],[aria-modal="true"]')
       )
         return;
-      const thread = threads.find((candidate) => threadShellKey(candidate) === routeThreadKey);
+      const thread =
+        threads.find((candidate) => threadShellKey(candidate) === routeThreadKey) ??
+        routeDraftThread;
       if (!thread) return;
       const group = scopeGroups.find((candidate) =>
         candidate.memberProjectRefs.some(
