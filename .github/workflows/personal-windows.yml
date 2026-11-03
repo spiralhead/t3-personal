@@ -1,0 +1,28 @@
+name: Personal Windows installer
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  installer:
+    runs-on: windows-2025
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-ci-deps
+      - uses: dtolnay/rust-toolchain@6bed0761d98439e5a578e2877258200ad565ba87
+        with:
+          toolchain: stable
+          targets: x86_64-pc-windows-msvc
+      - name: Build unsigned personal installer
+        run: vp exec node scripts/build-desktop-artifact.ts --platform win --target nsis --arch x64 --build-version 0.1.6-personal.1 --output-dir dist --verbose
+      - name: Hash installer
+        shell: pwsh
+        run: Get-ChildItem dist -Filter *.exe | Get-FileHash -Algorithm SHA256 | Format-List | Out-File dist/SHA256.txt
+      - uses: actions/upload-artifact@v7
+        with:
+          name: T3-Personal-Windows-x64
+          path: |
+            dist/*.exe
+            dist/SHA256.txt
+          if-no-files-found: error

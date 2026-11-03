@@ -1146,6 +1146,47 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
   });
   const projectScopeKeys = revealWidensScope ? [] : chosenProjectScopeKeys;
   const projectScopeKey = projectScopeKeys.length === 0 ? null : projectScopeKeys.join("\n");
+  // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- subscribes to the project-scope keyboard shortcut
+  useEffect(() => {
+    const listener = (event: KeyboardEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.repeat ||
+        event.isComposing ||
+        !event.ctrlKey ||
+        !event.altKey ||
+        event.metaKey ||
+        event.shiftKey ||
+        event.code !== "KeyP" ||
+        terminalFocused
+      )
+        return;
+      if (
+        event.target instanceof Element &&
+        event.target.closest('.xterm,[role="dialog"],[aria-modal="true"]')
+      )
+        return;
+      const thread = threads.find((candidate) => threadShellKey(candidate) === routeThreadKey);
+      if (!thread) return;
+      const group = scopeGroups.find((candidate) =>
+        candidate.memberProjectRefs.some(
+          (project) =>
+            project.environmentId === thread.environmentId &&
+            project.projectId === thread.projectId,
+        ),
+      );
+      if (!group) return;
+      event.preventDefault();
+      event.stopPropagation();
+      setProjectScopeKeys(
+        projectScopeKeys.length === 1 && projectScopeKeys[0] === group.projectKey
+          ? []
+          : [group.projectKey],
+      );
+    };
+    window.addEventListener("keydown", listener);
+    return () => window.removeEventListener("keydown", listener);
+  });
   const toggleProjectScopeKey = (key: string) =>
     setProjectScopeKeys(
       projectScopeKeys.includes(key)
@@ -2240,7 +2281,6 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
         threadKey,
         currentThreadKey: readRouteThreadKey(router),
         action: "snooze",
-        // oxlint-disable-next-line react/purity -- runs in an event handler (oxc#27309)
         now: new Date().toISOString(),
         thread: readThreadShell(threadRef),
       })
@@ -2280,7 +2320,6 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
       );
       if (threadKeys.length === 0) return;
       const count = threadKeys.length;
-      // oxlint-disable-next-line react/purity -- runs in an event handler (oxc#27309)
       const selectionNow = new Date();
       const selectedThreads = threadKeys.flatMap((threadKey) => {
         const thread = threadByKeyRef.current.get(threadKey);
@@ -2311,7 +2350,6 @@ export default function Sidebar({ routeReveal }: { routeReveal: SidebarRouteReve
         pinnedCount: pinnedSelectedThreads.length,
       });
       // Presets sync across environments, so the first selected thread's stand for all.
-      // oxlint-disable-next-line react/purity -- runs in an event handler (oxc#27309)
       const menuOpenedAt = new Date();
       const snoozePresets = resolveSnoozePresets(
         menuOpenedAt,

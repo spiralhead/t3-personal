@@ -6,6 +6,7 @@ import type {
 } from "@t3tools/contracts";
 import {
   collectProviderUsageLimits,
+  hidesProxyUsageLimits,
   formatDuration,
   type LimitPace,
   limitsNotice,
@@ -55,7 +56,7 @@ export function ThreadDetailsUsage({
   const limits =
     report?.accounts.find((entry) => entry.instanceId === providerInstanceId)?.limits ??
     providers.find((provider) => provider.instanceId === providerInstanceId)?.usageLimits;
-  if (!limits) return null;
+  if (!limits || hidesProxyUsageLimits(providerInstanceId)) return null;
   const notice = limitsNotice(limits);
 
   return (

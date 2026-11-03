@@ -140,9 +140,14 @@ function cursorUsageWindowRank(id: string): number {
   return rank < 0 ? CURSOR_USAGE_WINDOWS.length : rank;
 }
 
+export function hidesProxyUsageLimits(instanceId: string | null): boolean {
+  return instanceId === "codex-proxy" || instanceId === "codex-proxy-safe";
+}
+
 function providersWithLimits(providers: readonly ServerProvider[]): readonly ServerProvider[] {
   return providers.filter(
     (provider) =>
+      !hidesProxyUsageLimits(provider.instanceId) &&
       provider.enabled &&
       provider.installed &&
       isProviderAvailable(provider) &&
@@ -745,7 +750,12 @@ export function collectProviderUsageLimits(
   now: number,
 ): UsageLimitsReport | null {
   const selected = providers.find((provider) => provider.instanceId === instanceId);
-  if (!selected || !hasProviderUsageLimits(selected.driver, providers, sources)) return null;
+  if (
+    !selected ||
+    hidesProxyUsageLimits(instanceId) ||
+    !hasProviderUsageLimits(selected.driver, providers, sources)
+  )
+    return null;
   const resolveKey = accountKeyResolver([
     ...providers.filter((provider) => provider.enabled).map(nativeReport),
     ...sources.flatMap((source) => source.accounts),

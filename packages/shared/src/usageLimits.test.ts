@@ -1433,3 +1433,23 @@ describe("ChatGPT sharing presentation", () => {
     ).toBe(false);
   });
 });
+
+it("does not borrow Codex limits for the two proxy instances", () => {
+  const native = provider({
+    usageLimits: { checkedAt: "2026-09-03T11:00:00.000Z", windows: [window] },
+  });
+  for (const id of ["codex-proxy", "codex-proxy-safe"]) {
+    const proxy = provider({
+      instanceId: ProviderInstanceId.make(id),
+      usageLimits: native.usageLimits,
+    });
+    expect(collectProviderUsageLimits(proxy.instanceId, [native, proxy], [], now)).toBeNull();
+    const report = collectProviderUsageLimits(native.instanceId, [native, proxy], [], now);
+    expect(report?.accounts.map((account) => account.instanceId)).toEqual([native.instanceId]);
+  }
+  const safe = provider({
+    instanceId: ProviderInstanceId.make("codex-safe"),
+    usageLimits: native.usageLimits,
+  });
+  expect(collectProviderUsageLimits(safe.instanceId, [safe], [], now)?.accounts).toHaveLength(1);
+});
