@@ -14,9 +14,12 @@ jobs:
         with:
           toolchain: stable
           targets: x86_64-pc-windows-msvc
+      - name: Enable production T3 Connect public configuration
+        shell: bash
+        run: cp .env.example .env
       - name: Build unsigned personal installer
         shell: bash
-        run: vp exec node scripts/build-desktop-artifact.ts --platform win --target nsis --arch x64 --build-version 0.1.6-personal.1 --output-dir dist --verbose
+        run: vp exec node scripts/build-desktop-artifact.ts --platform win --target nsis --arch x64 --build-version 0.1.6-personal.2 --output-dir dist --verbose
       - name: Hash installer
         shell: pwsh
         run: Get-ChildItem dist -Filter *.exe | Get-FileHash -Algorithm SHA256 | Format-List | Out-File dist/SHA256.txt
