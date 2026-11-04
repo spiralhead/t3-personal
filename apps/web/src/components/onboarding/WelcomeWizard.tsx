@@ -1,3 +1,4 @@
+import { matchesImportProjectFolder } from "../../onboarding/projectImport.logic";
 import { useAuth } from "@clerk/react";
 import { useAtomValue } from "@effect/atom-react";
 import type {
@@ -1193,13 +1194,15 @@ function AgentInstallTerminal({
 
 const IMPORT_PERMISSION_MESSAGE = "This connection cannot import projects or thread history.";
 
-interface ImportSelection {
+export interface ImportSelection {
   // Computers whose projects were listed when the selection changed; later ones get the defaults.
   readonly environmentIds: ReadonlySet<EnvironmentId>;
   readonly keys: ReadonlySet<string>;
 }
 
-function ImportStep({
+export function ImportStep({
+  projectFolder,
+  includeOlder = false,
   scans,
   importSelection,
   onImportSelectionChange,
@@ -1207,6 +1210,8 @@ function ImportStep({
   setIsImporting,
   onDone,
 }: {
+  readonly projectFolder?: string;
+  readonly includeOlder?: boolean;
   readonly scans: ReturnType<typeof useProjectScans>;
   readonly importSelection: ImportSelection | null;
   readonly onImportSelectionChange: (next: ImportSelection) => void;
@@ -1242,11 +1247,16 @@ function ImportStep({
 
   const { available: candidates, recent } = partitionOnboardingProjects(
     scans.flatMap((scan) =>
-      (scan.data?.candidates ?? []).map((candidate) => ({
-        ...candidate,
-        environmentId: scan.environmentId,
-        key: onboardingProjectKey(scan.environmentId, candidate.path),
-      })),
+      (scan.data?.candidates ?? [])
+        .filter(
+          (candidate) =>
+            !projectFolder || matchesImportProjectFolder(candidate.path, projectFolder),
+        )
+        .map((candidate) => ({
+          ...candidate,
+          environmentId: scan.environmentId,
+          key: onboardingProjectKey(scan.environmentId, candidate.path),
+        })),
     ),
   );
   const recentKeys = new Set(recent.map((candidate) => candidate.key));
@@ -1393,7 +1403,11 @@ function ImportStep({
       }
       const threadImportResult = await importThreads({
         environmentId,
-        input: { projectId, expectedWorkspaceRoot: candidate.path },
+        input: {
+          projectId,
+          expectedWorkspaceRoot: candidate.path,
+          ...(includeOlder ? { includeOlder: true } : {}),
+        },
       });
       if (
         importGeneration !== importGenerationRef.current ||

@@ -104,16 +104,20 @@ const runScan = (input: ScannerTestInput) =>
     return yield* scanner.scan;
   }).pipe(Effect.provide(layerScannerTest(input)));
 
-const runRecentThreadOutcomes = (input: ScannerTestInput & { readonly workspaceRoot: string }) =>
+const runRecentThreadOutcomes = (
+  input: ScannerTestInput & { readonly workspaceRoot: string; readonly includeOlder?: boolean },
+) =>
   Effect.gen(function* () {
     const scanner = yield* AgentSessionScanner.AgentSessionScanner;
-    return yield* scanner.recentThreads(input.workspaceRoot).pipe(
+    return yield* scanner.recentThreads(input.workspaceRoot, [], input.includeOlder).pipe(
       Stream.runCollect,
       Effect.map((outcomes) => Array.from(outcomes)),
     );
   }).pipe(Effect.provide(layerScannerTest(input)));
 
-const runRecentThreads = (input: ScannerTestInput & { readonly workspaceRoot: string }) =>
+const runRecentThreads = (
+  input: ScannerTestInput & { readonly workspaceRoot: string; readonly includeOlder?: boolean },
+) =>
   runRecentThreadOutcomes(input).pipe(
     Effect.map((outcomes) =>
       outcomes.flatMap((outcome) => (outcome._tag === "Importable" ? [outcome.thread] : [])),
@@ -1243,6 +1247,15 @@ it.layer(NodeServices.layer)("AgentSessionScanner", (it) => {
           ["Legacy prompt", "Legacy answer"],
         ]);
         expect(threads[0]).toMatchObject({ source: "pi", title: "Pi refactor" });
+        const allAges = yield* runRecentThreads({
+          claudeHomePath,
+          codexHomePath,
+          piAgentDir,
+          workspaceRoot: workspace,
+          includeOlder: true,
+        });
+        expect(allAges.map((thread) => thread.providerSessionId)).toContain("claude-old");
+        expect(allAges.map((thread) => thread.providerSessionId)).not.toContain("claude-other");
       }),
     );
 

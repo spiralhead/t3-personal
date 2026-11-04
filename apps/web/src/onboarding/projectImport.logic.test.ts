@@ -3,6 +3,7 @@ import { describe, expect, it } from "vite-plus/test";
 
 import {
   groupOnboardingProjects,
+  matchesImportProjectFolder,
   partitionOnboardingProjects,
   onboardingProjectKey,
   resolveOnboardingLandingProject,
@@ -248,4 +249,11 @@ describe("projects on multiple computers", () => {
     const second = { ...candidate("/code/app"), environmentId: "second" };
     expect(partitionOnboardingProjects([first, second], now).recent).toEqual([first, second]);
   });
+});
+
+it("matches exactly one project folder with Windows case and separator normalization", () => {
+  expect(matchesImportProjectFolder("D:/Projects/App", " d:\\projects\\app\\ ")).toBe(true);
+  expect(matchesImportProjectFolder("D:/Projects/App2", "D:/Projects/App")).toBe(false);
+  expect(matchesImportProjectFolder("D:/Projects/App/child", "D:/Projects/App")).toBe(false);
+  expect(matchesImportProjectFolder("/code/App", "/code/app")).toBe(false);
 });

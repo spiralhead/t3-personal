@@ -251,3 +251,9 @@ On mobile, use **Settings → Source control** to change selected environment de
 T3 Code only pulls when it can fast-forward and the checkout has no changed files, untracked files,
 or local commits. It skips checkouts on another branch or without an upstream. If a checkout has
 local work, resolve it yourself before automatic pulls can resume.
+
+## Import Claude Code and Codex conversations
+
+Open **Settings > Projects > Import Claude / Codex conversations** at any time. Choose the computer in the settings scope, enter the exact project folder on that computer, and select **Find conversations**. Review and select the matching project, then import its history. The computer shown above the folder field owns the history and project path, including when connected through T3 Connect.
+
+The importer reads that computer's configured agent history homes; it does not read JSONL from the project folder. Existing imported sessions are skipped. With a Personal server supporting this option, manual imports include sessions older than 30 days; older official servers retain their original age limit. Existing scan, message and size limits still apply, so large histories may be partial. Source history and provider settings are not changed. Canceling this panel does not rerun or reset first-time setup.

@@ -1,3 +1,4 @@
+import { normalizeProjectPathForComparison } from "@t3tools/shared/path";
 import { findProjectByPath } from "@t3tools/client-runtime/state/projects";
 import type { AgentSessionProjectCandidate, EnvironmentId, ProjectId } from "@t3tools/contracts";
 
@@ -133,4 +134,11 @@ export function splitOnboardingProjectPath(path: string): {
 
 export function onboardingProjectKey(environmentId: EnvironmentId, path: string): string {
   return JSON.stringify([environmentId, path]);
+}
+
+export function matchesImportProjectFolder(candidatePath: string, folder: string): boolean {
+  return (
+    normalizeProjectPathForComparison(candidatePath) ===
+    normalizeProjectPathForComparison(folder.trim())
+  );
 }

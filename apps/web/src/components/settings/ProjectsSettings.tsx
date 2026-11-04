@@ -1,3 +1,4 @@
+import { AgentHistoryImportPanel } from "./AgentHistoryImportPanel";
 import { EnvironmentId } from "@t3tools/contracts";
 import { LayersIcon } from "lucide-react";
 
@@ -36,6 +37,10 @@ export function ProjectsSettings() {
       (scope.reason === "project-missing" || scope.reason === "checkout-missing"));
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      <AgentHistoryImportPanel
+        key={value.machine ?? "primary"}
+        environmentId={value.machine ? EnvironmentId.make(value.machine) : null}
+      />
       {value.project && projectScope ? (
         <ProjectSettingsPanel
           projectKey={value.project}
